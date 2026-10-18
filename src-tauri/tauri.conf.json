@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Valo Companion",
+  "productName": "KRYPTIX",
   "version": "0.1.0",
-  "identifier": "com.valo.companion",
+  "identifier": "com.kryptix.app",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
@@ -13,11 +13,12 @@
     "windows": [
       {
         "label": "main",
-        "title": "Valo Companion",
+        "title": "KRYPTIX",
         "width": 1200,
         "height": 780,
-        "minWidth": 960,
-        "minHeight": 620
+        "minWidth": 980,
+        "minHeight": 620,
+        "decorations": false
       }
     ],
     "security": {
@@ -26,13 +27,29 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": [
+      "nsis",
+      "msi"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true,
+    "shortDescription": "KRYPTIX \u2014 Valorant companion"
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDI5RjhGREJDRDY1MTdEMzMKUldRemZWSFd2UDM0S2V5RW0vOUg0UEJpdkQwSWM5a0tvenZIZXNMR0lkaGdBOE1tcXF2d3NRSFUK",
+      "endpoints": [
+        "https://github.com/crusheR-058/valo-companion/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
+    }
   }
 }

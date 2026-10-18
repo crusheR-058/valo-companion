@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import { isPermissionGranted, requestPermission, sendNotification } from "@tauri-apps/plugin-notification";
 import { useQuery, type UseQueryOptions } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { create } from "zustand";
@@ -67,30 +68,48 @@ export function decodePresence(p: any) {
       loop: j.sessionLoopState ?? j.matchPresenceData?.sessionLoopState ?? "",
       partyId: j.partyId ?? j.partyPresenceData?.partyId ?? "",
       queue: j.queueId ?? j.queueEntryTime ?? "",
+      map: (j.matchMap ?? j.matchPresenceData?.matchMap ?? "") as string,
     };
   } catch {
-    return { loop: "", partyId: "", queue: "" };
+    return { loop: "", partyId: "", queue: "", map: "" };
   }
 }
 
 /* ---------- persisted local state (never leaves the device) ---------- */
 type Settings = {
-  theme: string; overlay: boolean; hotkey: string; discord: boolean; closeToTray: boolean; friendNotify: boolean;
+  theme: string; overlay: boolean; hotkey: string; discord: boolean; discordId: string; closeToTray: boolean; friendNotify: boolean;
+  /** Hides opponent and hidden-player details and polls the live match less often. */
+  safeMode: boolean;
+  overlayCorner: "top-left" | "top-right" | "bottom-left" | "bottom-right"; overlayOpacity: number;
+  wishlistNotify: boolean; chatNotify: boolean;
   set: (p: Partial<Omit<Settings, "set">>) => void;
 };
 export const useSettings = create<Settings>()(persist((set) => ({
-  theme: "midnight", overlay: true, hotkey: "Alt+F", discord: false, closeToTray: false, friendNotify: true,
+  theme: "midnight", overlay: true, hotkey: "Alt+F", discord: false, discordId: "", closeToTray: false, friendNotify: true,
+  safeMode: true, overlayCorner: "top-right", overlayOpacity: 0.92, wishlistNotify: true, chatNotify: true,
   set: (p) => set(p),
-}), { name: "valo-settings", version: 1 }));
+}), { name: "kryptix-settings", version: 1 }));
+
+// The overlay is a second window: pick up settings saved by the main window.
+addEventListener("storage", (e) => { if (e.key === "kryptix-settings") useSettings.persist.rehydrate(); });
 
 type Notes = {
   memos: Record<string, string>; boards: Record<string, string>;
   presets: Record<string, any>; revealed: Record<string, true>;
+  /** Wished skins by skin uuid; `notified` holds offer ids already announced. */
+  wishlist: Record<string, true>; notified: Record<string, true>;
   setMemo: (id: string, t: string) => void; setBoard: (map: string, png: string) => void;
   setPreset: (name: string, loadout: any | undefined) => void; reveal: (offerId: string) => void;
+  toggleWish: (skin: string) => void; markNotified: (offerId: string) => void;
 };
 export const useNotes = create<Notes>()(persist((set) => ({
-  memos: {}, boards: {}, presets: {}, revealed: {},
+  memos: {}, boards: {}, presets: {}, revealed: {}, wishlist: {}, notified: {},
+  toggleWish: (skin) => set((s) => {
+    const wishlist = { ...s.wishlist };
+    if (wishlist[skin]) delete wishlist[skin]; else wishlist[skin] = true;
+    return { wishlist };
+  }),
+  markNotified: (id) => set((s) => ({ notified: { ...s.notified, [id]: true } })),
   setMemo: (id, t) => set((s) => ({ memos: { ...s.memos, [id]: t } })),
   setBoard: (map, png) => set((s) => ({ boards: { ...s.boards, [map]: png } })),
   setPreset: (name, loadout) => set((s) => {
@@ -99,7 +118,7 @@ export const useNotes = create<Notes>()(persist((set) => ({
     return { presets };
   }),
   reveal: (id) => set((s) => ({ revealed: { ...s.revealed, [id]: true } })),
-}), { name: "valo-notes" }));
+}), { name: "kryptix-notes" }));
 
 /* ---------- toasts ---------- */
 type Toast = { id: number; text: string; kind: "ok" | "error" };
@@ -112,3 +131,10 @@ export const useToasts = create<{ list: Toast[]; push: (text: string, kind?: Toa
   },
 }));
 export const toast = (text: string, kind?: Toast["kind"]) => useToasts.getState().push(text, kind);
+
+/** Windows notification; asks for permission the first time. */
+export async function notify(body: string, title = "KRYPTIX") {
+  if (!inTauri) return toast(body);
+  if (!(await isPermissionGranted()) && (await requestPermission()) !== "granted") return;
+  sendNotification({ title, body });
+}

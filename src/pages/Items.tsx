@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { call, toast, useCmd, useContent, useLookups, useNotes, VP } from "../lib";
 import { Page, Q } from "../ui";
+import { WishStar } from "./Collection";
 
 const hms = (s: number) => `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m`;
 
@@ -63,6 +64,7 @@ function Skin({ level, cost, was, pct }: { level: string; cost: number; was?: nu
   return (
     <div className="card tile offer" style={tier ? { "--tier": `#${tier.highlightColor.slice(0, 6)}` } as React.CSSProperties : undefined}>
       {tier && <img className="tier-icon" src={tier.displayIcon} alt={tier.devName} title={tier.devName} />}
+      {s && <WishStar skin={s.skin.uuid} name={s.skin.displayName} />}
       {s && <img className="offer-img" src={s.level.displayIcon ?? s.skin.displayIcon} alt="" />}
       <div className="offer-name">{s?.skin.displayName ?? "Unknown skin"}</div>
       <div className="row price"><b>{cost?.toLocaleString()} VP</b>{was && <s className="muted">{was.toLocaleString()}</s>}{pct && <span className="badge">-{pct}%</span>}</div>
@@ -93,13 +95,25 @@ export function Loadout() {
       qc.invalidateQueries({ queryKey: ["valorant_loadout_overview"] });
     } catch (e) { toast(String(e), "error"); }
   };
+  // Equips a random owned skin (highest owned level) on every weapon.
+  const randomise = (loadout: any) => {
+    const Guns = loadout.Guns.map((g: any) => {
+      const w = L.weapons.find((x) => x.uuid.toLowerCase() === g.ID.toLowerCase());
+      const mine = (w?.skins ?? []).filter((s: any) => s.levels.some((l: any) => owned.has(l.uuid.toLowerCase())));
+      if (!mine.length) return g;
+      const skin = mine[Math.floor(Math.random() * mine.length)];
+      const level = [...skin.levels].reverse().find((l: any) => owned.has(l.uuid.toLowerCase())) ?? skin.levels[0];
+      return { ...g, SkinID: skin.uuid, SkinLevelID: level.uuid, ChromaID: skin.chromas[0].uuid };
+    });
+    put({ ...loadout, Guns });
+  };
   const apply = (loadout: any, gunId: string, skin: any) => {
     const level = [...skin.levels].reverse().find((l: any) => owned.has(l.uuid.toLowerCase())) ?? skin.levels[0];
     put({ ...loadout, Guns: loadout.Guns.map((g: any) => g.ID !== gunId ? g : { ...g, SkinID: skin.uuid, SkinLevelID: level.uuid, ChromaID: skin.chromas[0].uuid }) });
   };
 
   return (
-    <Page title="Loadout">
+    <Page title="Loadout" actions={lo.data && <button onClick={() => randomise(lo.data)}>Randomise</button>}>
       <Q q={lo}>{(d) => (<>
         <Presets loadout={d} onApply={(p) => put({ ...d, Guns: p.Guns, Sprays: p.Sprays, Identity: p.Identity })} />
         <div className="tiles">

@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    valo_companion_lib::run()
+    kryptix_lib::run()
 }

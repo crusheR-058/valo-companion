@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { useQueries } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, rankOf, useCmd, useContent, useLookups, useNotes, VP, RADIANITE, KC } from "../lib";
 import { AgentIcon, ago, CountUp, Dial, Page, Q, Rank, Ring, tierTitle } from "../ui";
+import { MatchDetail } from "./Match";
+import { acsOf, useMyGames, useSession } from "./Stats";
 
 export function Dashboard() {
   const ov = useCmd("valorant_overview");
@@ -21,6 +22,7 @@ export function Dashboard() {
               <div className="eyebrow">Signed in</div>
               <h2 className="hero-name">{o.session.game_name}</h2>
               <div className="hero-meta"><span className="mono">#{o.session.game_tag}</span><span>Peak <PeakName tier={r.peak} /></span></div>
+              <SessionLine />
             </div>
             <Dial tier={r.tier} rr={r.rr} />
           </div>
@@ -43,6 +45,20 @@ export function Dashboard() {
   );
 }
 
+/** "Today: 3 ranked · +34 RR · W2" — only once you've played ranked today. */
+export function SessionLine() {
+  const s = useSession();
+  if (!s.ready || !s.games) return null;
+  return (
+    <div className="session">
+      <span className="eyebrow">Today</span>
+      <span>{s.games} ranked</span>
+      <b className={s.rr >= 0 ? "good" : "bad"}>{s.rr >= 0 ? "+" : "−"}{Math.abs(s.rr)} RR</b>
+      {s.streak && <span className={`streak ${s.streak[0] === "W" ? "good" : "bad"}`}>{s.streak}</span>}
+    </div>
+  );
+}
+
 function PeakName({ tier }: { tier: number }) {
   const t = useLookups().tier(tier);
   return <>{tier ? tierTitle(t?.tierName) : "unrated"}</>;
@@ -51,20 +67,12 @@ function PeakName({ tier }: { tier: number }) {
 /** Form over your last 10 matches: win rate, K/D, ACS and your most played agent. */
 function Performance() {
   const L = useLookups();
-  const h = useCmd("valorant_match_history", { start: 0, end: 10 });
-  const ids: string[] = (h.data?.History ?? []).map((m: any) => m.MatchID);
-  const details = useQueries({ queries: ids.map((matchId) => ({
-    queryKey: ["valorant_match_details", { matchId }], queryFn: () => call("valorant_match_details", { matchId }), staleTime: Infinity,
-  })) });
-  const games = details.flatMap((d) => {
-    const p = d.data?.players.find((x: any) => x.subject === h.data.Subject);
-    return p ? [{ p, won: !!d.data.teams?.find((t: any) => t.teamId === p.teamId)?.won }] : [];
-  });
+  const { games } = useMyGames(10);
   if (!games.length) return null;
   const sum = (f: (g: (typeof games)[0]) => number) => games.reduce((n, g) => n + f(g), 0);
   const wins = games.filter((g) => g.won).length;
   const kd = sum((g) => g.p.stats.kills) / Math.max(1, sum((g) => g.p.stats.deaths));
-  const acs = sum((g) => g.p.stats.score / Math.max(1, g.p.stats.roundsPlayed)) / games.length;
+  const acs = sum(acsOf) / games.length;
   const counts: Record<string, number> = {};
   for (const g of games) counts[g.p.characterId] = (counts[g.p.characterId] ?? 0) + 1;
   const top = L.agent(Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0]);
@@ -139,21 +147,7 @@ function MatchRow({ id, puuid, noScoreboard }: { id: string; puuid: string; noSc
           <b className="score">{score}</b>
           <span className="muted when">{ago(m.matchInfo.gameStartMillis)}</span>
         </button>
-        {open && (
-          <table className="scoreboard">
-            <tbody>
-              {[...m.players].sort((a: any, b: any) => a.teamId.localeCompare(b.teamId) || b.stats.score - a.stats.score).map((p: any) => (
-                <tr key={p.subject} className={p.teamId === me?.teamId ? "ally" : "enemy"}>
-                  <td><AgentIcon id={p.characterId} /></td>
-                  <td>{p.gameName}#{p.tagLine}</td>
-                  <td><Rank tier={p.competitiveTier} /></td>
-                  <td>{p.stats.kills}/{p.stats.deaths}/{p.stats.assists}</td>
-                  <td>{Math.round(p.stats.score / Math.max(1, p.stats.roundsPlayed))} ACS</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+        {open && <MatchDetail m={m} me={me} />}
       </div>
     );
   }}</Q>;
