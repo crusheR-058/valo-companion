@@ -28,7 +28,7 @@ function LiveBody({ d, compact }: { d: any; compact?: boolean }) {
     d.players.filter((p: any) => p.TeamID !== myTeam),
   ];
   return (<>
-    <div className="live-head" style={{ backgroundImage: `url(${L.map(d.match.MapID)?.listViewIcon})` }}>
+    <div className="live-head" style={{ "--art": `url(${L.map(d.match.MapID)?.listViewIcon})` } as React.CSSProperties}>
       <span className="live-pill">{d.phase === "pregame" ? "Agent select" : "Live"}</span>
       <h2>{L.map(d.match.MapID)?.displayName ?? "Unknown map"}</h2>
     </div>
@@ -55,7 +55,7 @@ function LivePlayer({ p, names, blocked, compact, items }: { p: any; names: any[
   const r = rankOf(mmr.data);
   const level = p.PlayerIdentity?.HideAccountLevel ? undefined : p.PlayerIdentity?.AccountLevel;
   return (<>
-    <button className={`match-row player fx ${open ? "active" : ""}`} disabled={compact} onClick={() => setOpen(!open)}
+    <button className={`match-row player ${open ? "active" : ""}`} disabled={compact} onClick={() => setOpen(!open)}
       style={{ "--agent": ag ? `#${ag.backgroundGradientColors?.[0]?.slice(0, 6)}` : "var(--line)" } as React.CSSProperties}>
       <AgentIcon id={p.CharacterID} />
       <span className="grow">{n ? id : <span className="muted">Hidden player{agent ? ` · ${agent}` : ""}</span>}

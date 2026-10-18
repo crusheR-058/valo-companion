@@ -46,7 +46,7 @@ export default function App() {
     <HashRouter>
       <div className="app" data-theme={theme}>
         <nav className="side" aria-label="Main">
-          <div className="brand"><span className="brand-mark" aria-hidden="true" />VALO<b>COMPANION</b></div>
+          <div className="brand"><em>Valo</em><span>companion</span></div>
           <button className="search-btn" onClick={() => dispatchEvent(new Event("palette"))}>
             <Icon name="players" /><span className="grow">Search…</span><kbd>Ctrl K</kbd>
           </button>

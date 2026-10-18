@@ -34,7 +34,7 @@ function Bundle({ id, secs }: { id: string; secs: number }) {
   const b = useContent(`bundles/${id}`);
   if (!b.data) return null;
   return (
-    <div className="card bundle fx" style={{ backgroundImage: `url(${b.data.displayIcon})` }}>
+    <div className="card bundle" style={{ backgroundImage: `url(${b.data.displayIcon})` }}>
       <span className="eyebrow">Featured bundle · {hms(secs)} left</span><h2>{b.data.displayName}</h2>
     </div>
   );
@@ -46,7 +46,7 @@ function NightOffer({ o }: { o: any }) {
   const shown = !!revealed[o.BonusOfferID];
   return (
     <div className={`flip ${shown ? "flipped" : ""}`}>
-      <button className="card tile reveal fx tilt flip-front" disabled={shown} aria-hidden={shown} onClick={() => reveal(o.BonusOfferID)}>
+      <button className="card tile reveal flip-front" disabled={shown} aria-hidden={shown} onClick={() => reveal(o.BonusOfferID)}>
         <b>?</b><span className="muted">Reveal offer</span>
       </button>
       <div className="flip-back" aria-hidden={!shown}>
@@ -61,7 +61,7 @@ function Skin({ level, cost, was, pct }: { level: string; cost: number; was?: nu
   const tiers = useContent("contenttiers");
   const tier = (tiers.data ?? []).find((t: any) => t.uuid === s?.skin.contentTierUuid);
   return (
-    <div className="card tile offer fx tilt" style={tier ? { "--tier": `#${tier.highlightColor.slice(0, 6)}` } as React.CSSProperties : undefined}>
+    <div className="card tile offer" style={tier ? { "--tier": `#${tier.highlightColor.slice(0, 6)}` } as React.CSSProperties : undefined}>
       {tier && <img className="tier-icon" src={tier.displayIcon} alt={tier.devName} title={tier.devName} />}
       {s && <img className="offer-img" src={s.level.displayIcon ?? s.skin.displayIcon} alt="" />}
       <div className="offer-name">{s?.skin.displayName ?? "Unknown skin"}</div>
@@ -110,7 +110,7 @@ export function Loadout() {
             const cur = w.skins.find((s: any) => s.uuid.toLowerCase() === g.SkinID.toLowerCase());
             const next = [...(cur?.levels ?? []), ...(cur?.chromas ?? [])].find((x: any) => !owned.has(x.uuid.toLowerCase()) && upgradeCost[x.uuid.toLowerCase()]);
             return (
-              <div className="card tile fx tilt" key={g.ID}>
+              <div className="card tile" key={g.ID}>
                 <img src={cur?.displayIcon ?? cur?.chromas[0]?.fullRender ?? w.displayIcon} alt="" />
                 <div className="muted">{w.displayName}</div>
                 <select value={cur?.uuid ?? ""} onChange={(e) => apply(d, g.ID, w.skins.find((s: any) => s.uuid === e.target.value))}>
@@ -159,7 +159,7 @@ export function Weapons() {
     <Page title="Weapon library">
       <div className="tiles">
         {L.weapons.map((w) => (
-          <div className="card tile fx tilt" key={w.uuid}>
+          <div className="card tile" key={w.uuid}>
             <img src={w.displayIcon} alt="" />
             <b>{w.displayName}</b>
             <div className="muted">{w.category.split("::").pop()} · {w.shopData?.cost ?? 0} credits</div>

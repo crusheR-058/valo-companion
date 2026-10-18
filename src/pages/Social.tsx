@@ -32,7 +32,7 @@ export function Friends() {
             {sorted.map((fr: any) => {
               const p = pres[fr.puuid];
               return (
-                <div className={`match-row friend fx ${p ? "online" : ""}`} key={fr.puuid}>
+                <div className={`match-row friend ${p ? "online" : ""}`} key={fr.puuid}>
                   <span className={`dot ${p ? "on" : ""}`} />
                   <span className="grow">{fr.game_name}<span className="muted">#{fr.game_tag}</span></span>
                   <span className="muted">{p ? LOOP[p.loop] ?? "Online" : "Offline"}</span>

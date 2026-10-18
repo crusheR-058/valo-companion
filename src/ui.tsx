@@ -25,23 +25,37 @@ export function Page({ title, sub, actions, children }: { title: string; sub?: R
   );
 }
 
-export function Rank({ tier, rr, big }: { tier?: number; rr?: number; big?: boolean }) {
+/** Riot sends tier names in capitals ("ASCENDANT 1"); show them as words. */
+export const tierTitle = (name?: string) => name?.toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()) ?? "Unrated";
+
+export function Rank({ tier, rr }: { tier?: number; rr?: number }) {
   const t = useLookups().tier(tier);
-  if (!t) return <span className="muted">Unrated</span>;
-  if (big) return (
-    <div className="rank-big">
-      <img src={t.largeIcon} alt="" />
-      <div>
-        <div className="rank-name" style={{ color: `#${t.color?.slice(0, 6)}` }}>{t.tierName}</div>
-        {rr !== undefined && <><div className="bar"><i style={{ width: `${Math.min(100, rr)}%` }} /></div><span className="muted">{rr} / 100 RR</span></>}
-      </div>
-    </div>
-  );
+  if (!t || !tier) return <span className="rank muted">Unrated</span>;
   return (
     <span className="rank">
       {t.smallIcon && <img src={t.smallIcon} alt="" />}
-      {t.tierName}{rr !== undefined && tier ? ` · ${rr} RR` : ""}
+      {tierTitle(t.tierName)}{rr !== undefined ? <span className="muted"> · {rr} RR</span> : null}
     </span>
+  );
+}
+
+/** Rank emblem inside a 100-tick bezel; lit ticks are the RR earned toward the next tier. */
+export function Dial({ tier, rr }: { tier?: number; rr: number }) {
+  const t = useLookups().tier(tier);
+  return (
+    <figure className="dial" aria-label={`${tierTitle(t?.tierName)}, ${rr} of 100 RR`}>
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        {Array.from({ length: 100 }, (_, i) => (
+          <line key={i} x1="100" y1="4" x2="100" y2={i % 10 === 0 ? 17 : 12} transform={`rotate(${i * 3.6} 100 100)`}
+            className={i < rr ? "on" : ""} style={{ animationDelay: `${300 + i * 9}ms` }} />
+        ))}
+      </svg>
+      {t?.largeIcon && tier ? <img src={t.largeIcon} alt="" /> : null}
+      <figcaption>
+        <span className="dial-tier">{tierTitle(t?.tierName)}</span>
+        <span className="dial-rr">{rr}<small>RR</small></span>
+      </figcaption>
+    </figure>
   );
 }
 
@@ -98,15 +112,3 @@ export function Toasts() {
     </div>
   );
 }
-
-// Pointer-reactive surfaces: any .fx element gets a cursor spotlight (--mx/--my); .tilt also leans toward the cursor.
-document.addEventListener("pointermove", (e) => {
-  const el = (e.target as Element).closest?.(".fx") as HTMLElement | null;
-  if (!el) return;
-  const r = el.getBoundingClientRect();
-  const x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
-  el.style.setProperty("--mx", `${x * 100}%`);
-  el.style.setProperty("--my", `${y * 100}%`);
-  el.style.setProperty("--rx", `${(0.5 - y) * 7}deg`);
-  el.style.setProperty("--ry", `${(x - 0.5) * 9}deg`);
-});

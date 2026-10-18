@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQueries } from "@tanstack/react-query";
 import { Link, useSearchParams } from "react-router-dom";
 import { call, rankOf, useCmd, useContent, useLookups, useNotes, VP, RADIANITE, KC } from "../lib";
-import { AgentIcon, ago, CountUp, Page, Q, Rank, Ring } from "../ui";
+import { AgentIcon, ago, CountUp, Dial, Page, Q, Rank, Ring, tierTitle } from "../ui";
 
 export function Dashboard() {
   const ov = useCmd("valorant_overview");
@@ -16,22 +16,20 @@ export function Dashboard() {
       <Q q={ov}>{(o) => {
         const r = rankOf(o.mmr);
         return (
-          <div className="hero-card fx" style={card ? { backgroundImage: `url(https://media.valorant-api.com/playercards/${card}/wideart.png)` } : undefined}>
+          <div className="hero-card" style={card ? { "--art": `url(https://media.valorant-api.com/playercards/${card}/wideart.png)` } as React.CSSProperties : undefined}>
             <div className="hero-body">
-              <div className="eyebrow">Signed in as</div>
-              <h2 className="hero-name">{o.session.game_name}<span>#{o.session.game_tag}</span></h2>
-              <div className="row hero-ranks">
-                <Rank tier={r.tier} rr={r.rr} big />
-                <div className="peak"><div className="eyebrow">Peak</div><Rank tier={r.peak} /></div>
-              </div>
+              <div className="eyebrow">Signed in</div>
+              <h2 className="hero-name">{o.session.game_name}</h2>
+              <div className="hero-meta"><span className="mono">#{o.session.game_tag}</span><span>Peak <PeakName tier={r.peak} /></span></div>
             </div>
+            <Dial tier={r.tier} rr={r.rr} />
           </div>
         );
       }}</Q>
       <Q q={wallet}>{(w) => (
         <div className="wallet">
           {[[VP, "Valorant Points"], [RADIANITE, "Radianite"], [KC, "Kingdom Credits"]].map(([id, label]) => (
-            <div className="card stat fx" key={id}>
+            <div className="card stat" key={id}>
               {icon(id) && <img src={icon(id)} alt="" />}
               <div><b><CountUp value={w.Balances[id] ?? 0} /></b><div className="muted">{label}</div></div>
             </div>
@@ -43,6 +41,11 @@ export function Dashboard() {
       <MatchList start={0} end={5} />
     </Page>
   );
+}
+
+function PeakName({ tier }: { tier: number }) {
+  const t = useLookups().tier(tier);
+  return <>{tier ? tierTitle(t?.tierName) : "unrated"}</>;
 }
 
 /** Form over your last 10 matches: win rate, K/D, ACS and your most played agent. */
@@ -69,14 +72,14 @@ function Performance() {
   return (<>
     <h3>Last {games.length} matches</h3>
     <div className="perf">
-      <div className="card fx perf-ring">
+      <div className="card perf-ring">
         <Ring value={wins / games.length} color="var(--win)" label={<><b><CountUp value={(wins / games.length) * 100} suffix="%" /></b><span className="muted">win rate</span></>} />
         <div className="form" aria-label="Results, newest first">{games.map((g, i) => <i key={i} className={g.won ? "w" : "l"} title={g.won ? "Win" : "Loss"} />)}</div>
       </div>
-      <div className="card fx perf-stat"><span className="eyebrow">K / D</span><b className={kd >= 1 ? "good" : "bad"}><CountUp value={kd} decimals={2} /></b><span className="muted">{sum((g) => g.p.stats.kills)} kills</span></div>
-      <div className="card fx perf-stat"><span className="eyebrow">Avg combat score</span><b><CountUp value={acs} /></b><span className="muted">per round</span></div>
+      <div className="card perf-stat"><span className="eyebrow">K / D</span><b className={kd >= 1 ? "good" : "bad"}><CountUp value={kd} decimals={2} /></b><span className="muted">{sum((g) => g.p.stats.kills)} kills</span></div>
+      <div className="card perf-stat"><span className="eyebrow">Avg combat score</span><b><CountUp value={acs} /></b><span className="muted">per round</span></div>
       {top && (
-        <div className="card fx perf-agent" style={{ "--a1": grad[0] ?? "var(--accent)", "--a2": grad[2] ?? grad[1] ?? "var(--panel)" } as React.CSSProperties}>
+        <div className="card perf-agent" style={{ "--a1": grad[0] ?? "var(--accent)", "--a2": grad[2] ?? grad[1] ?? "var(--panel)" } as React.CSSProperties}>
           <img src={top.fullPortrait} alt="" />
           <div><span className="eyebrow">Most played</span><b>{top.displayName}</b><span className="muted">{counts[top.uuid]} of {games.length} games</span></div>
         </div>
@@ -124,7 +127,7 @@ function MatchRow({ id, puuid, noScoreboard }: { id: string; puuid: string; noSc
     const team = m.teams?.find((t: any) => t.teamId === me?.teamId);
     const score = m.teams?.map((t: any) => t.roundsWon).join(" – ");
     return (
-      <div className={`match fx ${team?.won ? "win" : "loss"} ${open ? "open" : ""}`} style={{ "--map": `url(${L.map(m.matchInfo.mapId)?.listViewIcon})` } as React.CSSProperties}>
+      <div className={`match ${team?.won ? "win" : "loss"} ${open ? "open" : ""}`} style={{ "--map": `url(${L.map(m.matchInfo.mapId)?.listViewIcon})` } as React.CSSProperties}>
         <button className="match-row" disabled={noScoreboard} onClick={() => setOpen(!open)}>
           <AgentIcon id={me?.characterId} />
           <span className="grow">
