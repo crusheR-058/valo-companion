@@ -77,6 +77,7 @@ export function Memos() {
 }
 
 const THEMES: [id: string, label: string, swatch: string[]][] = [
+  ["kryptix", "Kryptix", ["#0a0a0c", "#141417", "#f4f2f2", "#ff3b4f", "#f4f2f2"]],
   ["midnight", "Midnight", ["#0e1216", "#151b21", "#ece8e1", "#86e0cf", "#d4b27a"]],
   ["daylight", "Daylight", ["#eef0f2", "#f8f9fa", "#11161b", "#1f8f7c", "#9a7333"]],
   ["crimson", "Crimson", ["#140d10", "#1d1418", "#f1e6e3", "#e8a0a6", "#d9b27e"]],

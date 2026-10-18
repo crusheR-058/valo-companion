@@ -85,7 +85,7 @@ type Settings = {
   set: (p: Partial<Omit<Settings, "set">>) => void;
 };
 export const useSettings = create<Settings>()(persist((set) => ({
-  theme: "midnight", overlay: true, hotkey: "Alt+F", discord: false, discordId: "", closeToTray: false, friendNotify: true,
+  theme: "kryptix", overlay: true, hotkey: "Alt+F", discord: false, discordId: "", closeToTray: false, friendNotify: true,
   safeMode: true, overlayCorner: "top-right", overlayOpacity: 0.92, wishlistNotify: true, chatNotify: true,
   set: (p) => set(p),
 }), { name: "kryptix-settings", version: 1 }));

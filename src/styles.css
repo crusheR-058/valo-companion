@@ -18,6 +18,18 @@ html, body, #root { margin: 0; height: 100%; background: transparent; }
   --accent: #86e0cf; --gilt: #d4b27a; --win: #86e0cf; --loss: #d98282; --accent-ink: #0b1714;
   display: grid; grid-template-columns: 232px 1fr; height: 100%; color: var(--text); background: var(--bg);
 }
+/* KRYPTIX: the emblem's black, white and signal red. Red marks focus and the rank dial; wins stay mint so red never means "won". */
+.app[data-theme="kryptix"] {
+  --bg: #0a0a0c; --bg2: #0e0e11; --surface: #141417; --surface2: #1b1b1f; --line: rgba(255, 255, 255, .07); --line2: rgba(255, 255, 255, .14);
+  --text: #f4f2f2; --muted: #96939a; --faint: #5f5c63; --accent: #ff3b4f; --gilt: #f4f2f2; --win: #7fe0c8; --loss: #ff8a96; --accent-ink: #fff;
+}
+.app[data-theme="kryptix"] .dial line.on { stroke: var(--accent); }
+.app[data-theme="kryptix"] .dial-rr { color: var(--accent); }
+.app[data-theme="kryptix"] .side a.active { box-shadow: inset 2px 0 var(--accent); }
+.app[data-theme="kryptix"] .chart-line { stroke: var(--accent); }
+.app[data-theme="kryptix"] .chart-card stop { stop-color: var(--accent); }
+.app[data-theme="kryptix"] .live-pill { color: var(--accent); }
+.app[data-theme="kryptix"] .live-dot { background: var(--accent); }
 .app[data-theme="daylight"] {
   --bg: #eef0f2; --bg2: #e6e9ec; --surface: #f8f9fa; --surface2: #ffffff; --line: rgba(14, 18, 22, .08); --line2: rgba(14, 18, 22, .16);
   --text: #11161b; --muted: #5b636c; --faint: #8a929a; --accent: #1f8f7c; --gilt: #9a7333; --win: #1f8f7c; --loss: #b8484d; --accent-ink: #fff;
@@ -441,7 +453,7 @@ p.empty { padding: 18px 0; }
 input[type="checkbox"].switch { appearance: none; width: 38px; height: 22px; padding: 0; border-radius: 999px; background: var(--line2); border: 0; position: relative; cursor: pointer; flex: none; transition: background .25s; }
 input[type="checkbox"].switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: var(--text); transition: transform .3s var(--ease); }
 input[type="checkbox"].switch:checked { background: var(--accent); } input[type="checkbox"].switch:checked::after { transform: translateX(16px); background: var(--accent-ink); }
-.themes { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.themes { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
 .theme { display: flex; flex-direction: column; gap: 10px; padding: 10px; border-radius: 14px; font-weight: 500; text-align: left; }
 .theme.on { border-color: var(--accent); }
 .theme-preview { position: relative; height: 70px; border-radius: 9px; overflow: hidden; display: block; }
@@ -455,12 +467,12 @@ input[type="checkbox"].switch:checked { background: var(--accent); } input[type=
 input[type="range"] { accent-color: var(--accent); width: 200px; padding: 0; border: 0; background: none; }
 .palette-list kbd { margin-left: auto; }
 
-@media (max-width: 1100px) { .party { grid-template-columns: repeat(3, 1fr); } .themes { grid-template-columns: repeat(2, 1fr); } .bd-row { grid-template-columns: 36px 1fr 64px 64px 64px; } .bd-bar { display: none; } }
+@media (max-width: 1100px) { .party { grid-template-columns: repeat(3, 1fr); } .themes { grid-template-columns: repeat(3, 1fr); } .bd-row { grid-template-columns: 36px 1fr 64px 64px 64px; } .bd-bar { display: none; } }
 @media (max-width: 860px) { .fights { grid-template-columns: 1fr; } .ledger { grid-template-columns: 1fr; } .ledger > div + div { border-left: 0; border-top: 1px solid var(--line); } .activity { display: none; } }
 
 /* ---------- overlay window ---------- */
-.overlay { --bg: transparent; --surface: rgba(14, 18, 22, var(--ov, .92)); --surface2: rgba(236, 232, 225, .05); --line: rgba(236, 232, 225, .08); --line2: rgba(236, 232, 225, .14);
-  --text: #ece8e1; --muted: #9aa2ab; --faint: #6b737c; --accent: #86e0cf; --gilt: #d4b27a; --win: #86e0cf; --loss: #d98282;
+.overlay { --bg: transparent; --surface: rgba(10, 10, 12, var(--ov, .92)); --surface2: rgba(255, 255, 255, .05); --line: rgba(255, 255, 255, .08); --line2: rgba(255, 255, 255, .14);
+  --text: #f4f2f2; --muted: #9a979e; --faint: #66636a; --accent: #ff3b4f; --gilt: #f4f2f2; --win: #7fe0c8; --loss: #ff8a96;
   --serif: "Bodoni Moda Variable", serif; --sans: "Geist Variable", sans-serif; --mono: "Geist Mono Variable", monospace; --ease: cubic-bezier(.22, .8, .2, 1);
   color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; margin: 6px; font-size: 12px;
   display: flex; flex-direction: column; gap: 8px; }
@@ -472,6 +484,7 @@ input[type="range"] { accent-color: var(--accent); width: 200px; padding: 0; bor
 .overlay .skins-inline, .overlay .player > .muted { display: none; }
 .overlay .rank { font-size: 11.5px; } .overlay .rank img { width: 18px; }
 .ov-idle { margin: 0; font-size: 11.5px; }
+.overlay .live-pill { color: var(--accent); }
 
 /* Daylight: Riot's white icons and dark-tuned art need the opposite treatment. */
 .app[data-theme="daylight"] .stat img, .app[data-theme="daylight"] .ledger img { filter: invert(1) brightness(.35); }
